@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>{{ PAGE_TITLE }}</title>
+<meta charset="UTF-8">
+<style>
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+table {
+  width: 100%;
+}
+
+label.min {
+  margin-left: 50px;
+  display: none;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+input.min {
+  margin-left: 5px;
+  display: none;
+  width: 100px;
+  height: 15px;
+  cursor: pointer;
+}
+
+label.max {
+  margin-left: 10px;
+  display: none;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+input.max {
+  margin-left: 5px;
+  display: none;
+  width: 100px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.checkbox {
+  /*display: inline-block;*/
+  margin-bottom: 10px;
+}
+
+.checkbox input {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.checkbox label {
+  margin-left: 10px;
+}
+
+.checkbox input:checked {
+  background-color: #000;
+}
+
+.checkbox input:checked + label {
+  color: rgba(0, 0, 0, 0.595);
+}
+
+.source_selection {
+  display: inline-block;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+.source_selection label {
+  margin-left: 10px;
+}
+
+.source_selection input {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.source_selection input:checked {
+  background-color: #fff;
+}
+
+.source_selection input:checked + label {
+  color: #000;
+}
+
+.color {
+  display: none;
+  margin-left: 20px;
+  width: 30px;
+  height: 15px;
+  padding: 1px;
+  border: 1px solid #ccc;
+}
+
+.color:hover {
+  border: 1px solid #000;
+}
+</style>
+</head>
+<body>
+<h2>Current file</h2>
+    <div id="filename">{{ FILE_NAME }}</div>
+    <br>
+<h3>Source Selection</h3>
+<div class="source_selection">
+    {% for source in sources %}
+    <input type="radio" id="{{ source }}" name="sources">
+    <label for="{{ source }}">{{ source }}</label>
+    {% endfor %}
+</div>
+<input type="button" id="ok_button" title="Creates image" value="Get graph" disabled onclick="request_graph()">
+<br>
+<div style="overflow-x:auto;">
+<table>
+  <tr>
+    <td style="width: 50%;"><div id="checkbox_anchor" style="width: 100%;"></div></td>
+    <td><div id="img" style="text-align: center; vertical-align: top;">check</div></td>
+  </tr>
+</table>
+</div>
+<script>
+
+function updateForVessel(id){
+    document.getElementById("ok_button").removeAttribute("disabled")
+    const apiUrl = `http://localhost:5000/graph/${document.getElementById("filename").textContent.trim().normalize("NFD")}/vessel/${id}`;
+    fetch(apiUrl)
+      .then(response => response.json())
+      .then((data) => {
+        // Remove previous checkboxes
+        //const checkboxes = document.querySelectorAll(".checkbox");
+        const anchor = document.getElementById("checkbox_anchor");
+        const checkboxes = anchor.childNodes;
+        for (let i = checkboxes.length-1; i >= 0 ; i--){
+            anchor.removeChild(checkboxes[i]);
+        }
+        // Create new checkboxes for current vessels variables
+        for (let i = 0; i < data.length; i++) {
+            // Create div with class checkbox
+            let new_div = document.createElement("div");
+            new_div.classList.add("checkbox");
+
+            // Create input for the data
+            let new_input = document.createElement("input");
+            new_input.type = "checkbox";
+            new_input.id = data[i];
+            new_div.appendChild(new_input);
+
+            // Create label for the data
+            let new_label = document.createElement("label");
+            new_label.htmlFor = data[i];
+            new_label.textContent = data[i];
+            new_div.appendChild(new_label);
+
+            // Create colormap input
+            let color_input = document.createElement("input");
+            color_input.type = "color";
+            color_input.id = new_input.id+"_color";
+            color_input.classList.add("color")
+            new_div.appendChild(color_input);
+
+            // Create min/max input
+            let min_label = document.createElement("label");
+            min_label.htmlFor = new_input.id+"_min";
+            min_label.textContent = "min";
+            min_label.classList.add("min");
+            new_div.appendChild(min_label);
+
+            let min_input = document.createElement("input");
+            min_input.type = "number";
+            min_input.id = new_input.id+"_min";
+            min_input.classList.add("min");
+            new_div.appendChild(min_input);
+
+            let max_label = document.createElement("label");
+            max_label.htmlFor = new_input.id+"_max";
+            max_label.textContent = "max";
+            max_label.classList.add("max");
+            new_div.appendChild(max_label);
+
+            let max_input = document.createElement("input");
+            max_input.type = "number";
+            max_input.id = new_input.id+"_max";
+            max_input.classList.add("max");
+            new_div.appendChild(max_input);
+
+            anchor.appendChild(new_div);
+            anchor.appendChild(document.createElement("br"))
+            // Add event listener to checkbox
+            new_input.addEventListener("change", () =>{
+                new_label.style.color = new_input.checked ? "#777777" : "#000000";
+                // Make everyone visible
+                color_input.style.display = new_input.checked ? "inline-block" : "none";
+                min_label.style.display = new_input.checked ? "inline-block" : "none";
+                min_input.style.marginLeft = "15px";
+                min_input.style.width = "50px";
+                min_input.style.display = new_input.checked ? "inline-block" : "none";
+                max_label.style.display = new_input.checked ? "inline-block" : "none";
+                max_input.style.display = new_input.checked ? "inline-block" : "none";
+                max_input.style.marginLeft = "15px";
+                max_input.style.width = "50px";
+            })
+        }
+      });
+}
+
+function request_graph(){
+  // From inputs build map of chosen variables to their configurations.
+  let inputs = document.getElementById("checkbox_anchor").getElementsByTagName("input");
+  let checked_boxes = {}; //new Map();
+  for (let i = 0; i < inputs.length; i++) {
+    if (inputs[i].type == "checkbox" && inputs[i].checked) {
+      let color = document.getElementById(inputs[i].id + "_color");
+      let min = document.getElementById(inputs[i].id + "_min");
+      let max = document.getElementById(inputs[i].id + "_max");
+      checked_boxes[inputs[i].id] = [color.value, min.value, max.value];
+    }
+  }
+  // Get selected radiobox
+  let id = "";
+  for (let source in source_selection){
+    if (source_selection[source].checked) id = source_selection[source].id;
+  }
+  // Call the API to generate the graph and respond file name.
+  let url = `http://localhost:5000/graph/${document.getElementById("filename").textContent.trim().normalize("NFD")}/vessel/${id}`;
+  fetch(url, {method: "POST", body: JSON.stringify(checked_boxes),
+              headers: {"Content-Type": "application/json", "Accept": "text/HTML"},})
+   .then(response => response.json())
+   .then(data => {
+    // Get the image frame
+    let frame = document.getElementById("img")
+    // Clear the frame
+    frame.textContent = '';
+    // Create new image
+    let img = document.createElement("img");
+    img.src = "http://localhost:5000/file/"+data;
+    img.alt = data
+    img.style = "width:1024px;height:1024px;";
+    // PLace image in frame
+    frame.appendChild(img);
+   });
+}
+
+const source_selection = document.querySelectorAll(".source_selection input");
+
+source_selection.forEach((source) => {
+    source.addEventListener("change", () => {
+      if (source.checked)
+        updateForVessel(source.id);
+    });
+});
+
+</script>
+</body>
+</html>
