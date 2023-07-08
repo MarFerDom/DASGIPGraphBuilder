@@ -92,11 +92,11 @@
   }
 
   /* When you mouse over the navigation links, change their color */
-  .overlay label:hover, .overlay input[type=checkbox] {
+  .overlay label:hover, .overlay input[type=checkbox]:hover {
     color: goldenrod;
   }
 
-  .overlay input:hover[type=number]{
+  .overlay input[type=number]:hover{
     background-color: goldenrod;
   }
   

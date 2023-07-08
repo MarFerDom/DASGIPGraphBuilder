@@ -13,7 +13,7 @@ app = Flask(__name__)
 dropzone = Dropzone(app)
 
 def get_handler(filename: str):
-    return handler.Handler(DB.get_content(filename))
+    return handler.Handler(DB.get_content(filename), filename=filename)
 
 @app.route("/")
 def index():

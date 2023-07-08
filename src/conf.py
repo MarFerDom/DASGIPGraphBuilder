@@ -18,4 +18,4 @@ __IMG_DIR__ = "./IMG/"
 
 _TIME_FORMAT_ = '%Y-%m-%d'
 _TIME_KEEP_DATA_ = 2 # days
-_TIME_KEEP_IMAG_ = 0 # days
+_TIME_KEEP_IMAG_ = 1 # days

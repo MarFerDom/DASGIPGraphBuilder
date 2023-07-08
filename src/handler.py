@@ -1,4 +1,4 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 from src import conf
 from src import graph_maker
 from src import file_loader
@@ -6,12 +6,16 @@ from src import file_loader
 logger = conf.logging.getLogger(__name__)
 
 class Handler():
-    def __init__ (self, content):
+    def __init__ (self, content, filename: Optional[str] = None):
         super(Handler, self).__init__()
         self.options = {}
         if type(content) is dict:
+            # Loose the file type
+            self.filename = filename and '.'.join(filename.split('.')[:-1])[:42]
             self.content: Dict[str,str] = content
         else:
+            # Loose the file type
+            self.filename = '.'.join(str(content).split('.')[:-1])[:42]
             self.content: Dict[str,str] = file_loader.file_loader(content)
             
         if 'Error' in self.content:
@@ -118,10 +122,12 @@ class Handler():
         # If wrong source return empty
         if source not in self.sources: return "Invalid source."
 
+        filename = self.filename and (self.filename + f"_{source}_{'_'.join(headers_map.values())}.png")
+            
         self.options.update({'title':source})
         units_mapping = graph_maker.get_units(headers_map)
         df = file_loader.dataframe_loader(self.content[source], headers_map)
-        return graph_maker.make_graph(df, units_mapping, **self.options)
+        return graph_maker.make_graph(df, units_mapping, **self.options, filename=filename)
     
 
 if __name__ == '__main__':

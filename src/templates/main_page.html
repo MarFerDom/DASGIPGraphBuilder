@@ -51,7 +51,7 @@
             {% endif %}
             {%- endmacro %}
             <label name="{{ vari }}_label" for="{{ vari }}" class="blocker">{{ vari }}</label>
-            <input type="color" value="#ff0000" name="{{ vari }}_color" {{ set_config(name, color_map) }}><br>
+            <input type="color" name="{{ vari }}_color" {{ set_config(vari, color_map) }}><br>
             <label for="{{ vari }}">min</label><input type="number" name="{{ vari }}_min"
               class="min" {{ set_config(vari, min_map) }}><br>
             <label for="{{ vari }}">max</label><input type="number" name="{{ vari }}_max"
