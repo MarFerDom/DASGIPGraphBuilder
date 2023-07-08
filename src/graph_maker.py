@@ -1,6 +1,9 @@
 import re
 import numpy as np
 import pandas as pd
+import matplotlib
+
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 from datetime import datetime
@@ -111,19 +114,15 @@ def make_graph(df: pd.DataFrame, units_mapping: Dict[str,str],
         ax=ax, **plot_params, color=color_map[var], xticks=xticks)
         ax.set_ylabel(units_mapping[var], fontsize=axis_fontsize)
         ax.set_xlabel(f'Time ({units_mapping[df.columns[0]]})', fontsize=axis_fontsize)
-        
-        # IMPROVE THIS PLEASE!!
-        ax.set_ylim(bottom=min_map.get(var, None), top=max_map.get(var, None))
-        #if "DO" in var : ax.set_ylim(*DO_ylim)
-        #if "FAir" in var: ax.set_ylim(0,110)
-        #if "N" == var: ax.set_ylim(0,1500)
+        ax.set_ylim(bottom=min_map[var], top=max_map[var])
+
         ax.legend(fontsize=legend_fontsize)
     print('Building graphs [' + num_graphs*'=' + f']({num_graphs}/{num_graphs})')
 
     if filename is None:
         if len('_'.join(plot_list))>_MAX_FILENAME_VAR_SIZE_: plot_list = [f'{len(plot_list)}_variables']
         filename = datetime.now().strftime(_TIME_FORMAT_) + '_'.join([title]+plot_list) + '.png'
-    plt.savefig(filename, dpi=dpi, bbox_inches='tight')
+    plt.savefig(conf.__IMG_DIR__+filename, dpi=dpi, bbox_inches='tight')
     logger.info(f'Graphs image saved as {filename}')
     plt.close()
 

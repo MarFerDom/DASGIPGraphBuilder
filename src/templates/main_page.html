@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<meta charset='utf-8'>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="en-us">
+<head>
+  <title>{{ PAGE_TITLE }}</title>
+  <link type="image/x-icon" rel="icon" href="./static/favicon.ico">
+  <link type="text/css" rel="stylesheet" href="./static/main_page.css">
+  <link type="text/css" rel="stylesheet" href="./static/topnav.css">
+  <link type="text/css" rel="stylesheet" href="./static/files_nav.css">
+  <link type="text/css" rel="stylesheet" href="./static/overlay.css">
+</head>
+<body>
+  <div id="main">
+  <div class="topnav" id="myTopnav">
+    <a href='http://localhost:5000/upload'>Add files</a>
+    <!--<input type="button" id="ok_button" title="Creates image" value="Get graph" disabled onclick="request_graph()">-->
+    <a onclick="closeNavFiles(); openNav()">Options</a>
+    <a href="javascript:void(0);" class="icon" onclick="closeNavFiles(); myTopNavFunction()">O</a>
+    <a class='leftnav' href="javascript:void(0);" onclick="openNavFiles()">Files &#9776;</a>
+  </div>
+  <br>
+
+  <fieldset>
+    <legend>Source Selection</legend>
+    <div class="source_selection">
+        {% for source in sources %}
+        <input type="checkbox" id="{{ source }}" name="{{ source }}">
+        <label for="{{ source }}" name="{{ source }}_label">{{ source }}</label>
+        {% endfor %}
+    </div>
+    <input type="button" value="Clear graphs" onclick="clear_graphs()">
+    <input type="button" value="Build graph" onclick="closeNavFiles(); send_request();">
+  </fieldset>
+  <br>
+
+  <div id="loader"></div>
+
+  <div id="myNav" class="overlay">
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+    <h3>Variables Selection</h3>
+    <table class="vars_selection overlay-content">
+        {% for line in lines %}
+        <tr>
+          {% for vari in line %}
+          <td>
+            <input type="checkbox" name="{{ vari }}" id="{{ vari }}" {% if vari is in cols %} checked {% endif %}>
+            {% macro set_config(name, map) -%}
+            {% if name is in map %}
+                value={{ map[name] }}
+            {% endif %}
+            {%- endmacro %}
+            <label name="{{ vari }}_label" for="{{ vari }}" class="blocker">{{ vari }}</label>
+            <input type="color" value="#ff0000" name="{{ vari }}_color" {{ set_config(name, color_map) }}><br>
+            <label for="{{ vari }}">min</label><input type="number" name="{{ vari }}_min"
+              class="min" {{ set_config(vari, min_map) }}><br>
+            <label for="{{ vari }}">max</label><input type="number" name="{{ vari }}_max"
+              class="max" {{ set_config(vari, max_map) }}><br>
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+    </table>
+  </div>
+
+  <br>
+  <div id="img">
+  </div>
+</div>
+
+<div id="navFiles" class="overlayFiles">
+  <a href="javascript:void(0)" class="closebtnfiles" onclick="closeNavFiles()">&times;</a>
+  <h3>Files Selection</h3>
+  <select id="file_select" title="File selection" multiple size="{{ files|count }}">
+    {% for file in files %}
+    <option value="{{ file }}"> {{ file }} </option>
+    {% endfor %}
+  </select>
+</div>
+
+<script src="./static/main_page.js"></script>
+</body>
+</html>

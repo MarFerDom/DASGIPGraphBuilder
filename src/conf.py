@@ -12,3 +12,10 @@ logging.getLogger('').addHandler(rotatingHandler)
 _FILE_ = "./CSV/CTPCLI308268.Manager 584248e0.Control.csv"
 _TOKEN_ = '"[TrackData{}]"\n'
 _END_TOKEN_ = '\n\n'
+
+__DB_FILE__ = "./DB/prog_data.json"
+__IMG_DIR__ = "./IMG/"
+
+_TIME_FORMAT_ = '%Y-%m-%d'
+_TIME_KEEP_DATA_ = 2 # days
+_TIME_KEEP_IMAG_ = 0 # days

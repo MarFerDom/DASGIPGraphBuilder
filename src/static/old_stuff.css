@@ -1,0 +1,52 @@
+label.min label.max{
+    margin-left: 10px;
+    /*display: none;*/
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+input.min input.max{
+    margin-left: 15px;
+    /*display: none;*/
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+.checkbox {
+    /*display: inline-block;*/
+    margin-bottom: 10px;
+}
+
+.checkbox input {
+    width: 15px;
+    height: 15px;
+    cursor: pointer;
+}
+
+.checkbox label {
+    margin-left: 10px;
+}
+
+.checkbox input:checked {
+    background-color: #000;
+}
+
+.checkbox input:checked + label {
+    color: rgba(0, 0, 0, 0.595);
+}
+
+.color {
+    /*display: none;*/
+    size: 15px;
+    margin-left: 20px;
+    width: 30px;
+    height: 15px;
+    padding: 1px;
+    border: 1px solid #ccc;
+}
+
+.color:hover {
+    border: 1px solid #000;
+}

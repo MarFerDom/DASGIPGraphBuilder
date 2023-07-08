@@ -36,8 +36,8 @@ if __name__ == '__main__':
     data = args.DATA or []
     src_var = handler.get_variables(handler.sources[args.SOURCE-1])
     for d in data:
-        if d not in src_var[1:]:
-            parser.error(f'Invalid variable!\nSelect from options: {src_var[1:]}')
+        if d not in src_var:
+            parser.error(f'Invalid variable!\nSelect from options: {src_var}')
     
     if data == []:
         print('All variables selected for graphing\n')

@@ -1,22 +1,19 @@
-from flask import Flask, render_template, request, send_file, session, redirect, make_response, url_for, render_template_string, jsonify
-from flask_session import Session
-from markupsafe import escape
+from flask import Flask, render_template, request, send_file, redirect, make_response, jsonify, send_from_directory
 from flask_dropzone import Dropzone
-from src import handler
-
+from src import conf, file_loader, handler, simple_json_db
+    
+DB = simple_json_db.SimpleJSONDB()
+    
 PAGE_TITLE = "Eppendorf DASGIP Graph Builder"
 _DRAG_DROP_TEXT_ = "(or) Drag and Drop files here."
 _VALID_TYPES_ = ['jpeg', 'png', 'jpg', 'gif']
+_VAR_COLS_ = 3
 
 app = Flask(__name__)
-app.config["SESSION_PERMANENT"] = False
-app.config["SESSION_TYPE"] = "filesystem"
-
 dropzone = Dropzone(app)
-Session(app)
 
 def get_handler(filename: str):
-    return handler.Handler(session.get(filename).replace('\r',''), from_content=True)
+    return handler.Handler(DB.get_content(filename))
 
 @app.route("/")
 def index():
@@ -24,79 +21,146 @@ def index():
        Main page - displays the drag and drop text for file.
     '''
 
-    print(session.keys())
-    return render_template("./index.html", **vars)
+    if len(DB.get_files()) == 0:
+        # If no files are available, redirect to upload page.
+        return redirect("/upload", 302)
+    else:
+        # Load any file to get variables and sources.
+        # kept it like this for easy changing when different file contents.
+        files = DB.get_files()
+        local_handler = get_handler(files[0])
+        sources = local_handler.sources
+        vars = local_handler.get_variables(sources[0])
+        # Organize the variables as lines with at most _VAR_COLS_ variables per line.
+        lines = [[vars[j*_VAR_COLS_ + i] for i in range(min(len(vars),_VAR_COLS_))
+                  if j*_VAR_COLS_ + i < len(vars)]
+                  for j in range(len(vars)//_VAR_COLS_ +1)]
+        # Clear config from nulls
+        config = DB.config.copy()
+        for key in ('min_map', 'max_map'):
+            config[key] = {k:v for k,v in config[key].items() if v is not None}
 
-@app.route("/upload", methods=["POST"])
+        # Create main page
+        response = make_response(render_template("./main_page.html",
+                                                 **vars_main,
+                                                 files=files,
+                                                 **config,
+                                                 sources=sources,
+                                                 lines=lines)) 
+        return response
+    
+@app.get("/config")
+def show_config():
+    # Check persistant configuration.
+    return jsonify(DB.config)
+
+@app.route("/config", methods=["POST", "OPTIONS"])
+def set_config():
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "*")
+        response.headers.add("Access-Control-Allow-Methods", "*")
+    else:
+        data = request.json
+        # Create the configuration parameters
+        cols = []
+        min_map = {}
+        max_map = {}
+        color_map = {}
+        for key in data:
+            color, min_val, max_val = data[key]
+            color_map.update({key: color})
+            min_map.update({key: None} if min_val == '' else {key: int(min_val)})
+            max_map.update({key: None} if max_val == '' else {key: int(max_val)})
+            cols.append(key)
+        options = {
+            "color_map":color_map,
+            "min_map":min_map,
+            "max_map":max_map,
+            "cols": cols
+            }
+        # Update persistant configuration
+        DB.config = options
+        DB.commit()
+    return make_response("ok")
+
+@app.get("/upload")
+def upload_get():
+    '''
+       Uploads the file content and redirects to the selection page.
+    '''
+
+    return render_template("./upload.html", **vars_upload)
+
+@app.post("/upload")
 def upload():
     '''
        Uploads the file content and redirects to the selection page.
     '''
 
-    file = request.files["file"]
-    # If received file is not empty save in session.
-    if file:
-        filename = ''.join(
-            (c for c in file.filename.split('\\')[-1] if c.isalnum() or c in ' -_.'))
-        print(f'Got file {filename} with {len(filename) = }, {type(filename)}')
-        session[filename] = file.read().decode('utf-8')
+    for file in request.files.getlist('file'):
+        filename = ''.join( (c for c in file.filename.split('\\')[-1] \
+                             if c.isalnum() or c in ' -_.'))
+        # Decode content, remove \r if inserted and break into blocks per vessel
+        data_blocks = file_loader.data_block_loader(
+            content=file.read().decode("utf-8").replace("\r",''))
+        # Update database with data blocks for each file
+        DB.update_content(filename, data_blocks)
+    
+    DB.commit()
+    return redirect("/", 302)
+
+@app.route("/graph_maker", methods=["POST", "OPTIONS"])
+def graph_maker():
+    if request.method == "OPTIONS":
+        response = make_response()
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "*")
+        response.headers.add("Access-Control-Allow-Methods", "*")
     else:
-        # return to main page.
-        return redirect("/", 302)
-        #file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        #file.save("./working_file.csv")
-    return render_template("./selection.html", **vars, FILE_NAME=filename,
-                           sources=get_handler(filename).sources)
+        options = DB.config.copy()
+        cols = options.pop("cols")
+        data = request.json
+        if data["files"] == [] or data["sources"] == []:
+            response = jsonify({"paths":["test.png"]})
+        else:
+            files_created = []
 
-@app.route("/graph")
+            for file in data["files"]:
+                local_handler = get_handler(file)
+                local_handler.add_option(data=options)
+                for source in data["sources"]:
+                    files_created.append(
+                        local_handler.make_graph(source,local_handler.filter_cols(source, cols))
+                        )
+            response = jsonify({"paths":files_created})
+        response.headers.add('Access-Control-Allow-Origin', "*")
+    return response
+
+@app.route("/file")
 def graphs():
-    print(session.keys())
-    return '; '.join(session.keys())
+    return ';\n'.join(DB.get_files())
 
-@app.route("/graph/<filename>")
-def graph(filename: str):
-    print(f'filename is {filename}')
-    source_list = "; ".join(get_handler(filename).sources)
-    response = make_response(source_list)
-    response.headers.add('Access-Control-Allow-Origin', '/upload')
-    return response
-
-@app.route("/graph/<filename>/vessel/<id>")
-def get_vars(filename: str, id: str):
-    #filename = list(session.keys())[0]
-    print(f'filename is {filename}, id is {id}')
-    response = make_response(jsonify(get_handler(filename).get_variables(id)))
-    response.headers.add('Access-Control-Allow-Origin', '/upload')
-    return response
-
-@app.route("/graph/<filename>/vessel/<id>", methods=["POST"])
-def get_graph(filename: str, id: str):
-    data = request.json
-    color_map = {k:v[0] for k,v in data.items()}
-    min_map = {k:int(v[1]) for k,v in data.items() if v[1] != ''}
-    max_map = {k:int(v[2]) for k,v in data.items() if v[2] != ''}
-    local_handler = get_handler(filename)
-    local_handler.add_option("color_map", color_map)
-    local_handler.add_option("min_map", min_map)
-    local_handler.add_option("max_map", max_map)
-    cols = local_handler.filter_cols(id, list(data.keys()))
-    return jsonify(local_handler.make_graph(id, cols))
-    #return jsonify({'test':list(data.keys())})
-
-@app.route("/file/<filename>")
-def get_file(filename: str):
+@app.route("/img/<filename>")
+def get_img(filename: str):
     filename = filename.split("/")[-1]
     if filename.split('.')[-1] not in _VALID_TYPES_:
         return "Invalid file type"
-    return send_file("../"+filename, mimetype='image/png')
+    return send_from_directory("../", conf.__IMG_DIR__+filename, mimetype='image/png')
 
 with app.app_context():
-    _UPLOAD_PATH_ = "http://localhost/upload"
+    _UPLOAD_PATH_ = "http://localhost:5000/upload"
 
-    vars = {
+    vars_upload = {
         "PAGE_TITLE": PAGE_TITLE,
         "_DRAG_DROP_TEXT_": _DRAG_DROP_TEXT_,
         "_UPLOAD_PATH_": _UPLOAD_PATH_
     }
+
+    vars_main = {
+        "PAGE_TITLE": PAGE_TITLE
+    }
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=False, port=5000)

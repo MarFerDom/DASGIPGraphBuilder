@@ -6,14 +6,13 @@ from src import file_loader
 logger = conf.logging.getLogger(__name__)
 
 class Handler():
-    def __init__ (self, filename, from_content=False):
+    def __init__ (self, content):
         super(Handler, self).__init__()
-        self.filename:str = filename
         self.options = {}
-        if from_content:
-            self.content: Dict[str,str] = file_loader.data_block_loader(filename)
+        if type(content) is dict:
+            self.content: Dict[str,str] = content
         else:
-            self.content: Dict[str,str] = file_loader.file_loader(filename)
+            self.content: Dict[str,str] = file_loader.file_loader(content)
             
         if 'Error' in self.content:
             logger.error(self.content['Error'])
@@ -103,8 +102,10 @@ class Handler():
     def title_fontsize(self):
         self.title_params.pop('title_fontsize', None)
 
-    def add_option(self, key: str, value: str):
-        self.options.update({key:value})
+    def add_option(self, key: str = None, value: str = None, data: Dict[str,str] = {}):
+        if key is not None:
+            self.options.update({key:value})
+        self.options.update(data)
 
     def remove_option(self, key: str):
         self.options.pop(key, None)

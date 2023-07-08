@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <link type="text/css" rel="stylesheet" href="./static/upload.css">
+    <style>
+        .upload-container:before {
+            position: absolute;
+            bottom: 50px;
+            left: 250px;
+            content: '{{ _DRAG_DROP_TEXT_ }}';
+            color: darkgreen;
+            font-weight: 900;
+        } 
+    </style>
+    <title>{{ PAGE_TITLE }}</title>
+</head>
+<body>
+    <h1>File Upload</h1>
+    <div class="upload-container">
+    <form action="{{ _UPLOAD_PATH_ }}" method="post" enctype="multipart/form-data">
+        <input id="file_to_read" type="file" name="file" multiple>
+        <input class="upload-btn" type="submit" value="Upload">
+    </form>
+    </div>
+</body>
+</html>
