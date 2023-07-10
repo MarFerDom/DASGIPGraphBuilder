@@ -52,3 +52,13 @@ def check_imag_del() -> None:
         # Remove files that expired.
         if time_check(file_time, conf._TIME_KEEP_IMAG_):
             os.remove(os.path.join(conf.__IMG_DIR__, filename))
+
+def check_folders(folder: str):
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+
+check_folders(conf.__IMG_DIR__)
+check_folders(conf.__DB_DIR__)
+
+if __name__ == '__main__':
+    print(f"{__file__} not supposed to run as main")

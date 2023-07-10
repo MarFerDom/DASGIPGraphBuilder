@@ -37,7 +37,8 @@ API_GRAPH = "graph_maker"
     # DATABASE
 
 # Database file
-__DB_FILE__ = "./DB/prog_data.json"
+__DB_DIR__ = "./DB/"
+__DB_FILE__ = __DB_DIR__+"prog_data.json"
 # Images directory
 __IMG_DIR__ = "./IMG/"
 

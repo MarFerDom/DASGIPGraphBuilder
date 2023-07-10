@@ -155,6 +155,7 @@ def dataframe_loader(data_block: str,
     # Ignore remaining leading NaN.
     return df
 
+
 if __name__ == '__main__':
 
     content = file_loader()
