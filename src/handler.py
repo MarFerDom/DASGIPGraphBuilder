@@ -160,7 +160,7 @@ class Handler():
         # Set title as source
         self.options.update({'title':source})
         # Get units mapping. Graph maker deals with bad header map.
-        units_mapping = self.graph_maker.get_units(headers_map)
+        units_mapping = self.loader.get_units(headers_map)
         # Get dataframe. Loader deals with bad input.
         df = self.loader.dataframe_loader(self.content[source], headers_map)
         # Make graph. Graph maker deals with bad input.

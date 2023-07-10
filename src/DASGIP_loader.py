@@ -1,3 +1,4 @@
+import re
 import io
 import pandas as pd
 from typing import Optional
@@ -5,7 +6,7 @@ from src import conf, protocols
 
 logger = conf.logging.getLogger(__name__)
 
-_mock_content_ = {"Vessel 1":"Unit.InoculationX ;Unit.Y1.PV\n00:00:00;0.000"}
+_mock_content_ = {"Vessel 1":"Unit.InoculationX [];Unit.Y1.PV [kW]\n00:00:00;0.000"}
 
 ################################################################################
 # File loader contains helper functions to load data from DASGIP generated csv #
@@ -101,6 +102,23 @@ def header_loader(data_block: str) -> protocols.DATA_TYPE:
 
     return header_map
 
+def get_units(header_mapping: protocols.DATA_TYPE) -> protocols.DATA_TYPE:
+    '''
+       Build mapping from clean headers to units based on
+       'dirty' to 'clean' headers mapping.
+    '''
+    
+    logger.info('Building units mapping.')
+    units_mapping = {}
+    for dirty, clean in header_mapping.items():
+        # Finds units inside brackets in header or None.
+        x = re.search(r"\[(.*?)\]", dirty) and \
+            re.search(r"\[(.*?)\]", dirty).group(1)
+        # Time headers have empty brackets or no brackets.
+        units_mapping[clean] = 'h' if x in ('', None) else x
+    logger.info(f'{units_mapping = }')
+    return units_mapping
+
 def dataframe_loader(data_block: str,
                      headers_map: Optional[protocols.DATA_TYPE] = None
                      ) -> pd.DataFrame:
@@ -142,7 +160,12 @@ if __name__ == '__main__':
     content = file_loader()
     print(*content.keys())
 
+    header = header_loader(content[next(iter(content.keys()))])
+    print(
+        list(get_units(header).values())
+        )
+
     for key in content:
          print(
-             dataframe_loader(content[key], header_loader(content[key])).head()
+             dataframe_loader(content[key], header).head()
              )

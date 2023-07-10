@@ -1,4 +1,3 @@
-import re
 import matplotlib
 import numpy as np
 import pandas as pd
@@ -15,23 +14,6 @@ logger = conf.logging.getLogger(__name__)
 
 _TEST_FILENAME_ = "dummy.png"
 _TIME_FORMAT_ = "%Y_%m_%d(%a)-%I_%M%p_"
-
-def get_units(header_mapping: protocols.DATA_TYPE) -> protocols.DATA_TYPE:
-    '''
-       Build mapping from clean headers to units based on
-       'dirty' to 'clean' headers mapping.
-    '''
-    
-    logger.info('Building units mapping.')
-    units_mapping = {}
-    for dirty, clean in header_mapping.items():
-        # Finds units inside brackets in header or None.
-        x = re.search(r"\[(.*?)\]", dirty) and \
-            re.search(r"\[(.*?)\]", dirty).group(1)
-        # Time headers have empty brackets or no brackets.
-        units_mapping[clean] = 'h' if x in ('', None) else x
-    logger.info(f'{units_mapping = }')
-    return units_mapping
 
 def _build_color_map(units_mapping: protocols.DATA_TYPE,
                    color_map: Optional[protocols.DATA_TYPE] = None
@@ -170,7 +152,8 @@ def make_graph(df: pd.DataFrame,
 
 
 if __name__ == '__main__':
-
+    from src import DASGIP_loader
+    
     header_mapping = {
         'GARBAGE_TEXT.Time [s]':'Time',
         'GARBAGE_TEXT.DO1 [mg/L]':'DO1',
@@ -181,7 +164,7 @@ if __name__ == '__main__':
         'GARBAGE_TEXT.DO6 [mg/L]':'DO6',
         'GARBAGE_TEXT.DO7 [mg/L]':'DO7'
     }
-    print(get_units(header_mapping))
+    print(DASGIP_loader.get_units(header_mapping))
     
     color_map = {head:color for head,color in \
                  zip(header_mapping.values(), ['mediumseagreen','aquamarine'] + ['black']*6)}
@@ -191,7 +174,7 @@ if __name__ == '__main__':
         pd.DataFrame(
             np.array([time]+[50*(np.sin(time)+1)]*(len(color_map)-1)).T,
             columns=header_mapping.values()),
-            get_units(header_mapping),
+            DASGIP_loader.get_units(header_mapping),
             color_map=color_map,
             filename=_TEST_FILENAME_
             )
