@@ -11,9 +11,10 @@
   <link type="text/css" rel="stylesheet" href="./static/overlay.css">
 </head>
 <body>
-  <div id="main">
+  <div id="main" data-config-url="{{ _CONFIG_PATH_ }}" data-upload-url="{{ _UPLOAD_PATH_ }}"
+                      data-graph-url="{{ _GRAPH_PATH_ }}" data-img-url="{{ _IMAGES_PATH_ }}">
   <div class="topnav" id="myTopnav">
-    <a href='http://localhost:5000/upload'>Add files</a>
+    <a href="{{ _UPLOAD_PATH_ }}">Add files</a>
     <!--<input type="button" id="ok_button" title="Creates image" value="Get graph" disabled onclick="request_graph()">-->
     <a onclick="closeNavFiles(); openNav()">Options</a>
     <a href="javascript:void(0);" class="icon" onclick="closeNavFiles(); myTopNavFunction()">O</a>

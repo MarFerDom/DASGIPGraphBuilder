@@ -13,14 +13,14 @@ if ! ls ./venv &>/dev/null; then
   fi
   
   # Check if virtualenv is installed
-  if command -v virtualenv &>/dev/null; then
+  if python3 -m virtualenv &>/dev/null; then
     echo "virtualenv is already installed."
   else
     pip3 install -U virtualenv
   fi
 
   # Create a virtual environment
-  virtualenv venv
+  python3 -m virtualenv venv
 
   # Activate the virtual environment
   if ! source venv/bin/activate &>/dev/null; then
@@ -30,7 +30,7 @@ if ! ls ./venv &>/dev/null; then
 
   # Update pip
   echo "updating PIP."
-  python3 -m pip install --upgrade pip
+  python3 -m pip install --U pip
 
   # Install the requirements
   pip3 install -r requirements.txt
@@ -46,8 +46,6 @@ else
 fi
 
 python3 -m src.app
-
-open "http://localhost:5000/"
 
 ###################################################################################################################
 # Run code                          ### !!! NO LONGER IN USE !!!! ###                                                                                         #

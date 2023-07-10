@@ -14,7 +14,7 @@
           let opt = {method: "POST", body: JSON.stringify(file_option),
                       headers: {"Content-Type": "application/json"}};
           // Call the API to generate the graphs and use list of file names to add graphs to website.
-          let url = `http://localhost:5000/graph_maker`;
+          let url = document.getElementById("main").dataset.graphUrl;
           await fetch(url, opt)
           .then((response) => response.json())
           .then((data) => {
@@ -30,7 +30,7 @@
               img_frame.appendChild(document.createElement("br"));
               // Create new image
               let img = document.createElement("img");
-              img.src = "http://localhost:5000/img/"+path;
+              img.src = document.getElementById("main").dataset.imgUrl+path;
               img.alt = path
               img.style = "width:1024px;";
               img_frame.appendChild(img);
@@ -61,7 +61,7 @@
         });
         let opt = {method: "POST", body: JSON.stringify(options_config), headers: {"Content-Type": "application/json"}};
         // Call the API to change the configuration.
-        let url = `http://localhost:5000/config`;
+        let url = document.getElementById("main").dataset.configUrl;
         fetch(url, opt)
         .then(response => {
           if(!response.ok) alert("Error: "+response.status);
