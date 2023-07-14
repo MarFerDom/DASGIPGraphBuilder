@@ -1,6 +1,6 @@
 # DASGIP Graph Builder <a id="top"></a>
 
-Easly build graphs from Eppendorf - DASGIP MultiparallelBioreactorSystem generated .csv files.
+Easily build graphs from Eppendorf - DASGIP MultiparallelBioreactorSystem generated .csv files.
 
 <img src=https://media3.giphy.com/media/ZaxcauVgBidVaBYdN2/giphy.gif width=640 style="text-align: center"><br>
 
